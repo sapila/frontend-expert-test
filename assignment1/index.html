@@ -9,9 +9,145 @@
             <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
-    </head>
-    <body>
+         <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+        width:50%;
+        float:left;
+      }
+      #info{
+          height: 100%;
+          width:50%;
+          float:left;
+      }
+   
+      
+    </style>
+    </head>        
+     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAB7N3OVBODNoT4ztimrfYvoukuKNspDa8&callback=initMap"
+    async defer></script>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>    <body>
+       
         <!-- Place your HTML code here -->
         <!-- You can add your own dependencies like CSS and JavaScript. -->
+
+         <div id="map"></div>
+         <div id="info">
+             <h4>Select a marker to see more info</h4>
+                    <div id="content">
+                        
+                    </div> 
+                
+         </div>
+
+
+<script language="javascript" type="text/javascript">
+
+  
+   
+    
+    
+// I got -> No 'Access-Control-Allow-Origin' header is present on the requested resource
+      //    $.getJSON("https://www.deskbookers.com/nl-nl/sajax.json?q=Amsterdam&type=-&people=any&favorite=0&pid=&sw=52.293753%2C4.634942&ne=52.455562%2C5.162286&ids=17201%2C19640%2C13692%2C13691%2C12136%2C17938%2C15292%2C14886%2C14885%2C14884%2C14883%2C15730%2C15353%2C15351%2C15330%2C15080%2C17290%2C15454%2C15451%2C15379",function(data){
+      //         alert(JSON.stringify(data));
+      //     });
+
+//<--And i also tried with jsonp but no luck -->
+     //  $.ajax({
+        //     url: "https://www.deskbookers.com/nl-nl/sajax.json?q=Amsterdam&type=-&people=any&favorite=0&pid=&sw=52.293753%2C4.634942&ne=52.455562%2C5.162286&ids=17201%2C19640%2C13692%2C13691%2C12136%2C17938%2C15292%2C14886%2C14885%2C14884%2C14883%2C15730%2C15353%2C15351%2C15330%2C15080%2C17290%2C15454%2C15451%2C15379",
+        //     dataType: "text/html",
+        //     success: function(data){
+        //         alert(data);
+        //     }    });
+        // window.jsoncallback = function (data){
+        //     console.log("re is ")
+        // }
+//<-- So i just added the data to a file to finish the task -->
+    
+   
+  
+          
+        
+      var map;
+      allMarkers = [];
+      shift=1;
+      function initMap() {
+           $.getJSON("data.json",function(data){
+                map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat:data[0].coordinate[0],lng:data[0].coordinate[1]} ,
+                zoom: 10
+                });
+
+             
+                var i;
+                for(i=0;i<data.length;i+=1)
+                {
+                   createMarker(data[i]);
+                  
+                }
+         });
+      }
+    
+     function createMarker(data){
+          var marker = new google.maps.Marker({
+                        position:  {lat:data.coordinate[0],lng:data.coordinate[1]},
+                        map: map
+                    });
+                 
+                            
+                    var htmlContent = "<div class='col-sm-6'><img width='200px' height='150px' src=\""+data.image_urls[0]+"\" ><br>"+
+                                      "Name: "+data.name+"<br>Venue: "+data.location_name+"<br>City: "+data.location_city+"<br>"+
+                                      "Maximum Capacity: "+data.maximum_capacity+"<br>Hour prcr: "+data.hour_price+" ‎€</div>"
+
+                    marker.htmlContent = htmlContent;
+
+                    var infowindowHover = new google.maps.InfoWindow({
+                    content: data.address[0]
+                    });
+  
+                    google.maps.event.addListener(marker, 'click', function() {
+
+                      var content = document.getElementById("content");
+                      content.innerHTML = "";
+
+                      for(var i=0;i<allMarkers.length;i++){
+                        if(allMarkers[i].position.lat() === marker.position.lat() &&
+                           allMarkers[i].position.lng() === marker.position.lng() )
+                          {
+                          content.innerHTML += allMarkers[i].htmlContent;
+                          }
+                      }
+                    
+                    });
+                    google.maps.event.addListener(marker, 'mouseover', function() {                    
+                      infowindowHover.open(map, this);
+                    });
+                    google.maps.event.addListener(marker, 'mouseout', function() {
+                      infowindowHover.close();
+                    });
+                    
+                    allMarkers.push(marker);
+     }
+     function round(value, decimals) {
+    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
+    </script>
+    
+    <script src="./jawj.js" ></script>
+
+    
     </body>
 </html>
